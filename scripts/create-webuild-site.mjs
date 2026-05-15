@@ -46,6 +46,12 @@ function copyDir(src, dest) {
   }
 }
 
+function copyFileIfMissing(src, dest) {
+  if (!fs.existsSync(src) || fs.existsSync(dest)) return;
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
+  fs.copyFileSync(src, dest);
+}
+
 function replaceInFile(filePath, replacements) {
   if (!fs.existsSync(filePath)) return;
   let content = fs.readFileSync(filePath, 'utf8');
@@ -56,6 +62,22 @@ function replaceInFile(filePath, replacements) {
 }
 
 copyDir(templateDir, targetDir);
+
+// Copy the Webuild operating standard into every generated site.
+copyFileIfMissing(path.join(repoRoot, 'AGENTS.md'), path.join(targetDir, 'AGENTS.md'));
+copyFileIfMissing(path.join(repoRoot, 'CLAUDE.md'), path.join(targetDir, 'CLAUDE.md'));
+copyFileIfMissing(path.join(repoRoot, '.env.example'), path.join(targetDir, '.env.example'));
+if (fs.existsSync(path.join(repoRoot, '.claude'))) {
+  copyDir(path.join(repoRoot, '.claude'), path.join(targetDir, '.claude'));
+}
+
+const docsDir = path.join(repoRoot, 'docs');
+if (fs.existsSync(docsDir)) {
+  fs.mkdirSync(path.join(targetDir, 'docs'), { recursive: true });
+  for (const doc of fs.readdirSync(docsDir)) {
+    copyFileIfMissing(path.join(docsDir, doc), path.join(targetDir, 'docs', doc));
+  }
+}
 
 const replacements = {
   '__WEBUILD_PROJECT_NAME__': siteName,
@@ -87,5 +109,6 @@ console.log('  npm install');
 console.log('  npm run dev');
 console.log('\nBefore production:');
 console.log('  npm run build');
-console.log('  update webuild.config.json');
-console.log('  update .env.example and docs/');
+console.log('  node .claude/skills/webuild-website-standard/scripts/detect-project.mjs');
+console.log('  node .claude/skills/webuild-website-standard/scripts/validate-webuild-config.mjs');
+console.log('  update webuild.config.json, .env.example and docs/');
