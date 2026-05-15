@@ -2,13 +2,16 @@
 
 Webuildsites is the operating standard for building, migrating, deploying, and maintaining modern AI-assisted websites.
 
-This repository is not just a website repo. It is the foundation for a repeatable website delivery system that supports:
+This repository is a standards, skill, tooling, and template repository. It is not itself a deployable client website.
 
-- new AI-built websites
-- existing websites already in development
-- completed websites that need to be moved into a managed hosting workflow
-- static websites, dynamic websites, and web apps
-- Claude Code, GitHub, Coolify/Webuild Cloud, and future deployment automation
+It provides:
+
+- a Claude Code skill for Webuild website work
+- project checklists and references
+- detector and validator scripts
+- a canonical `webuild.config.json` schema
+- starter templates for future website builds
+- documentation for Vercel and VPS/Coolify compatibility
 
 ## Core Idea
 
@@ -26,19 +29,68 @@ This standard exists to make every website easier to:
 
 ## Quick Start for Claude Code
 
-1. Copy or keep the `.claude/skills/webuild-website-standard/SKILL.md` skill in the project.
-2. Keep `AGENTS.md`, `CLAUDE.md`, `webuild.config.json`, `.env.example`, and `/docs` in the root.
-3. Ask Claude Code to read `CLAUDE.md`, `AGENTS.md`, and `webuild.config.json` before making changes.
-4. Classify the project before building: `static`, `dynamic`, or `app`.
-5. Do not force websites to be static if they need interactivity, API routes, CMS preview, integrations, auth, databases, or workflows.
+Install/copy the **whole skill folder**, not only `SKILL.md`:
+
+```txt
+.claude/skills/webuild-website-standard/
+```
+
+`SKILL.md` depends on the included `checklists/`, `references/`, `templates/`, and `scripts/` folders.
+
+For a Webuild-managed project, keep these files in the project root:
+
+```txt
+AGENTS.md
+CLAUDE.md
+webuild.config.json
+.env.example
+docs/
+.claude/skills/webuild-website-standard/
+```
+
+Then ask Claude Code to read:
+
+```txt
+CLAUDE.md
+AGENTS.md
+webuild.config.json
+.claude/skills/webuild-website-standard/SKILL.md
+```
 
 ## Recommended Project Modes
 
 | Mode | Use For | Hosting Impact |
 |---|---|---|
-| Static Website | brochure sites, landing pages, SEO pages, basic external forms | cheapest and simplest |
-| Dynamic Website | API routes, server-side forms, CMS preview, integrations, personalized content | needs Node/runtime |
-| Web App | auth, dashboards, database, payments, user accounts, workflows | needs full app hosting and stricter ops |
+| `none` | standards/tooling repos, not deployable websites | no hosting target |
+| `static` | brochure sites, landing pages, SEO pages, basic external forms | cheapest and simplest |
+| `dynamic` | API routes, server-side forms, CMS preview, integrations, personalized content | needs runtime |
+| `app` | auth, dashboards, database, payments, user accounts, workflows | needs full app hosting and stricter ops |
+
+## Commands
+
+Run the detector:
+
+```bash
+npm run detect
+```
+
+Validate the config:
+
+```bash
+npm run validate:config
+```
+
+Run tests:
+
+```bash
+npm test
+```
+
+Run all checks:
+
+```bash
+npm run check
+```
 
 ## Important Rule
 
