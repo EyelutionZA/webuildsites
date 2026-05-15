@@ -1,0 +1,57 @@
+{
+  "standard": "webuild-website-standard",
+  "version": "2.0.0",
+  "project": {
+    "name": "docs-only-repo",
+    "client": "Fixture",
+    "type": "standard-repository",
+    "status": "fixture"
+  },
+  "classification": {
+    "hostingMode": "none",
+    "reason": "Documentation-only fixture, not a deployable website."
+  },
+  "stack": {
+    "framework": "none",
+    "router": "none",
+    "language": "markdown",
+    "styling": "none",
+    "packageManager": "none"
+  },
+  "runtime": {
+    "requiresNodeServer": false,
+    "usesApiRoutes": false,
+    "usesMiddleware": false,
+    "usesDatabase": false,
+    "usesAuth": false,
+    "usesPayments": false,
+    "usesUploads": false,
+    "usesBackgroundJobs": false,
+    "usesPersistentStorage": false,
+    "requiredEnv": []
+  },
+  "commands": {},
+  "deployment": {
+    "target": "none",
+    "engine": "none",
+    "containerized": false,
+    "domain": "",
+    "stagingDomain": "",
+    "healthCheckPath": "",
+    "port": null
+  },
+  "integrations": {
+    "forms": { "provider": "none", "requiredEnv": [] },
+    "analytics": { "provider": "none", "requiredEnv": [] },
+    "cms": { "provider": "none", "requiredEnv": [] },
+    "database": { "provider": "none", "requiredEnv": [] },
+    "auth": { "provider": "none", "requiredEnv": [] },
+    "payments": { "provider": "none", "requiredEnv": [] },
+    "storage": { "provider": "none", "requiredEnv": [] }
+  },
+  "maintenance": {
+    "uptimeMonitoring": false,
+    "backups": true,
+    "monthlyHealthCheck": false
+  }
+}
