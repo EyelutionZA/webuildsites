@@ -1,34 +1,22 @@
 {
+  "standard": "webuild-website-standard",
+  "version": "2.0.0",
   "project": {
     "name": "",
     "client": "",
+    "type": "website",
     "status": "in-development"
   },
   "classification": {
     "hostingMode": "static|dynamic|app",
     "reason": ""
   },
-  "deploymentTargets": {
-    "vercel": {
-      "compatible": null,
-      "notes": [],
-      "buildCommand": "",
-      "outputDirectory": "",
-      "requiredEnv": [],
-      "runtimeFeatures": []
-    },
-    "vpsCoolify": {
-      "compatible": null,
-      "strategy": "static|node|docker|compose",
-      "nodeVersion": "",
-      "buildCommand": "",
-      "startCommand": "",
-      "port": null,
-      "healthCheckPath": "",
-      "requiredEnv": [],
-      "persistentStorage": [],
-      "backupNeeds": []
-    }
+  "stack": {
+    "framework": "nextjs",
+    "router": "app",
+    "language": "typescript",
+    "styling": "tailwind",
+    "packageManager": "npm"
   },
   "runtime": {
     "requiresNodeServer": false,
@@ -37,8 +25,74 @@
     "usesDatabase": false,
     "usesAuth": false,
     "usesPayments": false,
+    "usesUploads": false,
     "usesBackgroundJobs": false,
-    "usesPersistentStorage": false
+    "usesPersistentStorage": false,
+    "requiredEnv": []
+  },
+  "commands": {
+    "install": "npm install",
+    "dev": "npm run dev",
+    "build": "npm run build",
+    "start": "npm run start"
+  },
+  "deployment": {
+    "target": "vercel|vps|coolify|webuild-cloud",
+    "engine": "vercel|node|docker|coolify-compatible",
+    "containerized": false,
+    "domain": "",
+    "stagingDomain": "",
+    "healthCheckPath": "",
+    "port": null,
+    "compatibility": {
+      "vercel": {
+        "compatible": null,
+        "notes": [],
+        "runtimeFeatures": []
+      },
+      "vpsCoolify": {
+        "compatible": null,
+        "strategy": "static|node|docker|compose",
+        "notes": [],
+        "persistentStorage": [],
+        "backupNeeds": []
+      }
+    }
+  },
+  "integrations": {
+    "forms": {
+      "provider": "none",
+      "requiredEnv": []
+    },
+    "analytics": {
+      "provider": "none",
+      "requiredEnv": []
+    },
+    "cms": {
+      "provider": "none",
+      "requiredEnv": []
+    },
+    "database": {
+      "provider": "none",
+      "requiredEnv": []
+    },
+    "auth": {
+      "provider": "none",
+      "requiredEnv": []
+    },
+    "payments": {
+      "provider": "none",
+      "requiredEnv": []
+    },
+    "storage": {
+      "provider": "none",
+      "requiredEnv": []
+    }
+  },
+  "maintenance": {
+    "uptimeMonitoring": true,
+    "backups": true,
+    "monthlyHealthCheck": true
   },
   "risks": [],
   "nextSteps": []
