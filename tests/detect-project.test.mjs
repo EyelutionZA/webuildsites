@@ -4,8 +4,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
-const repoRoot = path.resolve(import.meta.dirname, '..');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, '..');
 const detector = path.join(repoRoot, '.claude/skills/webuild-website-standard/scripts/detect-project.mjs');
 
 function makeTempProject(files) {
