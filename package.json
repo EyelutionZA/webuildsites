@@ -5,8 +5,11 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "detect": "node .claude/skills/webuild-website-standard/scripts/detect-project.mjs",
-    "validate:config": "node .claude/skills/webuild-website-standard/scripts/validate-webuild-config.mjs",
+    "detect": "node scripts/webuild.mjs detect",
+    "validate:config": "node scripts/webuild.mjs validate",
+    "report": "node scripts/webuild.mjs report",
+    "report:write": "node scripts/webuild.mjs report --write",
+    "doctor": "node scripts/webuild.mjs doctor",
     "check": "npm test && npm run validate:config"
   },
   "engines": {
