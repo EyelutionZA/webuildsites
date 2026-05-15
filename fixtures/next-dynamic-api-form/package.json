@@ -1,0 +1,14 @@
+{
+  "name": "next-dynamic-api-form-fixture",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "scripts": {
+    "build": "next build",
+    "start": "next start"
+  }
+}
