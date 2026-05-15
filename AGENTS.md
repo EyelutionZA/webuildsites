@@ -1,5 +1,3 @@
-# AGENTS.md
-
 # Webuild Website Operating Standard
 
 You are working on a website that must follow the Webuild Website Operating Standard.
