@@ -1,0 +1,45 @@
+{
+  "project": {
+    "name": "",
+    "client": "",
+    "status": "in-development"
+  },
+  "classification": {
+    "hostingMode": "static|dynamic|app",
+    "reason": ""
+  },
+  "deploymentTargets": {
+    "vercel": {
+      "compatible": null,
+      "notes": [],
+      "buildCommand": "",
+      "outputDirectory": "",
+      "requiredEnv": [],
+      "runtimeFeatures": []
+    },
+    "vpsCoolify": {
+      "compatible": null,
+      "strategy": "static|node|docker|compose",
+      "nodeVersion": "",
+      "buildCommand": "",
+      "startCommand": "",
+      "port": null,
+      "healthCheckPath": "",
+      "requiredEnv": [],
+      "persistentStorage": [],
+      "backupNeeds": []
+    }
+  },
+  "runtime": {
+    "requiresNodeServer": false,
+    "usesApiRoutes": false,
+    "usesMiddleware": false,
+    "usesDatabase": false,
+    "usesAuth": false,
+    "usesPayments": false,
+    "usesBackgroundJobs": false,
+    "usesPersistentStorage": false
+  },
+  "risks": [],
+  "nextSteps": []
+}
