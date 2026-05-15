@@ -5,8 +5,25 @@ import path from 'node:path';
 
 const root = process.cwd();
 const SOURCE_EXTENSIONS = new Set(['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs', '.vue', '.svelte']);
-const SKIP_DIRS = new Set(['node_modules', '.next', 'dist', 'build', 'out', '.git', 'coverage', '.turbo', '.vercel']);
+const SKIP_DIRS = new Set([
+  'node_modules',
+  '.next',
+  'dist',
+  'build',
+  'out',
+  '.git',
+  'coverage',
+  '.turbo',
+  '.vercel',
+  'tests',
+  '__tests__',
+  'e2e',
+  'playwright-report',
+  'templates',
+  'examples'
+]);
 const LOCKFILES = new Set(['package-lock.json', 'pnpm-lock.yaml', 'yarn.lock', 'bun.lockb']);
+const TEST_FILE_PATTERN = /(^|\/)([^/]+\.)?(test|spec)\.(js|jsx|ts|tsx|mjs|cjs)$/;
 
 function exists(...parts) {
   return fs.existsSync(path.join(root, ...parts));
@@ -40,7 +57,7 @@ function walk(dir = '.', maxDepth = 6, currentDepth = 0, results = []) {
 
     const rel = path.join(dir, entry.name).replace(/^\.\//, '');
     if (entry.isDirectory()) walk(rel, maxDepth, currentDepth + 1, results);
-    else results.push(rel);
+    else if (!TEST_FILE_PATTERN.test(rel.replaceAll('\\', '/'))) results.push(rel);
   }
   return results;
 }
