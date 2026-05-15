@@ -15,6 +15,8 @@ const validatorPath = path.join(repoRoot, '.claude/skills/webuild-website-standa
 
 const command = process.argv[2] || 'help';
 const shouldWrite = process.argv.includes('--write');
+const targetArg = process.argv.find((arg) => arg.startsWith('--target='));
+const target = targetArg ? targetArg.split('=')[1] : undefined;
 
 function runNodeJson(scriptPath) {
   try {
@@ -78,14 +80,17 @@ function scoreProject(detectResult, validateResult, config) {
   return { total, riskLevel, scores };
 }
 
-function renderReport() {
+function getProjectState() {
   const detect = runNodeJson(detectorPath);
   const validate = runNodeJson(validatorPath);
   const config = readJsonIfExists('webuild.config.json');
   const detectData = detect.data || {};
   const validateData = validate.data || { valid: false, issues: [{ level: 'error', message: 'Validator did not return JSON' }] };
-  const score = scoreProject(detectData, validateData, config);
+  return { detect, validate, config, detectData, validateData, score: scoreProject(detectData, validateData, config) };
+}
 
+function renderReport() {
+  const { config, detectData, validateData, score } = getProjectState();
   const runtime = detectData.runtime || {};
   const stack = detectData.stack || {};
   const deployment = detectData.deployment || {};
@@ -107,9 +112,7 @@ function renderReport() {
   lines.push('');
   lines.push('## Score Breakdown');
   lines.push('');
-  for (const [name, value] of Object.entries(score.scores)) {
-    lines.push(`- ${name}: ${value}/20`);
-  }
+  for (const [name, value] of Object.entries(score.scores)) lines.push(`- ${name}: ${value}/20`);
   lines.push('');
   lines.push('## Detected Stack');
   lines.push('');
@@ -122,16 +125,7 @@ function renderReport() {
   lines.push('');
   lines.push('## Runtime Signals');
   lines.push('');
-  const runtimeKeys = [
-    'hasApiRoutes',
-    'hasMiddleware',
-    'usesDatabase',
-    'usesAuth',
-    'usesPayments',
-    'usesUploads',
-    'usesBackgroundJobs',
-    'usesRuntimeEnvVars'
-  ];
+  const runtimeKeys = ['hasApiRoutes', 'hasMiddleware', 'usesDatabase', 'usesAuth', 'usesPayments', 'usesUploads', 'usesBackgroundJobs', 'usesRuntimeEnvVars'];
   for (const key of runtimeKeys) lines.push(`- ${key}: ${Boolean(runtime[key])}`);
   lines.push(`- Runtime env vars: ${(runtime.runtimeEnvVars || []).join(', ') || 'none'}`);
   lines.push('');
@@ -145,11 +139,8 @@ function renderReport() {
   lines.push('');
   lines.push('## Config Validation');
   lines.push('');
-  if (issues.length === 0) {
-    lines.push('- No validation issues found.');
-  } else {
-    for (const item of issues) lines.push(`- ${item.level.toUpperCase()}: ${item.path ? `${item.path}: ` : ''}${item.message}`);
-  }
+  if (issues.length === 0) lines.push('- No validation issues found.');
+  else for (const item of issues) lines.push(`- ${item.level.toUpperCase()}: ${item.path ? `${item.path}: ` : ''}${item.message}`);
   lines.push('');
   lines.push('## Recommended Next Steps');
   lines.push('');
@@ -165,8 +156,75 @@ function renderReport() {
   return lines.join('\n');
 }
 
+function addResult(results, status, check, detail) {
+  results.push({ status, check, detail });
+}
+
+function renderPreflight(targetName) {
+  const normalizedTarget = targetName === 'vps' ? 'coolify' : targetName;
+  if (!['vercel', 'coolify'].includes(normalizedTarget)) {
+    throw new Error('Preflight target must be vercel, vps, or coolify. Example: npm run preflight:vercel');
+  }
+
+  const { config, detectData, validateData, score } = getProjectState();
+  const runtime = detectData.runtime || {};
+  const stack = detectData.stack || {};
+  const deployment = detectData.deployment || {};
+  const mode = runtime.hostingModeRecommendation || config?.classification?.hostingMode || 'unknown';
+  const results = [];
+
+  addResult(results, validateData.valid ? 'pass' : 'fail', 'Config validation', validateData.valid ? 'webuild.config.json passed validation.' : 'Fix config validation errors first.');
+  addResult(results, config?.classification?.hostingMode === 'none' ? 'fail' : 'pass', 'Deployable project', config?.classification?.hostingMode === 'none' ? 'This repo is classified as non-deployable tooling/standards.' : 'Project has a deployable hosting mode.');
+  addResult(results, config?.classification?.hostingMode === mode || config?.classification?.hostingMode === 'none' ? 'pass' : 'warn', 'Hosting mode alignment', `Detector recommends ${mode}; config says ${config?.classification?.hostingMode || 'missing'}.`);
+
+  if (normalizedTarget === 'vercel') {
+    addResult(results, deployment.vercel?.compatible ? 'pass' : 'fail', 'Vercel compatibility', deployment.vercel?.compatible ? 'Detector sees Vercel as compatible.' : 'Detector does not see this as Vercel-compatible.');
+    addResult(results, stack.hasDockerfile ? 'warn' : 'pass', 'No Docker dependency', stack.hasDockerfile ? 'Dockerfile exists; Vercel normally ignores Docker for standard framework deploys.' : 'No Dockerfile dependency detected.');
+    addResult(results, runtime.usesUploads ? 'warn' : 'pass', 'Persistent file storage', runtime.usesUploads ? 'Uploads detected; use external object storage for Vercel.' : 'No upload/persistent file signal detected.');
+    addResult(results, runtime.usesBackgroundJobs ? 'warn' : 'pass', 'Background jobs', runtime.usesBackgroundJobs ? 'Background jobs need external worker/queue/scheduler on Vercel.' : 'No background job signal detected.');
+    addResult(results, config?.commands?.build ? 'pass' : 'fail', 'Build command', config?.commands?.build ? `Build command documented: ${config.commands.build}` : 'Missing build command.');
+  }
+
+  if (normalizedTarget === 'coolify') {
+    addResult(results, deployment.vpsCoolify?.compatible ? 'pass' : 'fail', 'VPS/Coolify compatibility', deployment.vpsCoolify?.compatible ? `Strategy: ${deployment.vpsCoolify.strategy}` : 'Detector does not see this as VPS/Coolify compatible.');
+    addResult(results, mode === 'static' || Boolean(config?.commands?.start) || stack.hasDockerfile || stack.hasCompose ? 'pass' : 'fail', 'Start/runtime strategy', mode === 'static' ? 'Static site can use static deployment.' : config?.commands?.start ? `Start command documented: ${config.commands.start}` : 'Dynamic/app project needs start command, Dockerfile, or Compose file.');
+    addResult(results, runtime.usesUploads || runtime.usesPersistentStorage ? 'warn' : 'pass', 'Persistent storage', runtime.usesUploads || runtime.usesPersistentStorage ? 'Define volume/external storage and backups.' : 'No persistent storage signal detected.');
+    addResult(results, runtime.usesDatabase ? (config?.integrations?.database?.provider && config.integrations.database.provider !== 'none' ? 'pass' : 'warn') : 'pass', 'Database plan', runtime.usesDatabase ? `Database provider: ${config?.integrations?.database?.provider || 'missing'}` : 'No database signal detected.');
+    addResult(results, config?.deployment?.healthCheckPath ? 'pass' : 'warn', 'Health check path', config?.deployment?.healthCheckPath ? `Health check: ${config.deployment.healthCheckPath}` : 'Add healthCheckPath for managed hosting.');
+  }
+
+  const fails = results.filter((item) => item.status === 'fail').length;
+  const warnings = results.filter((item) => item.status === 'warn').length;
+  const status = fails > 0 ? 'fail' : warnings > 0 ? 'conditional' : 'pass';
+
+  const lines = [];
+  lines.push(`# Webuild ${normalizedTarget === 'vercel' ? 'Vercel' : 'VPS/Coolify'} Preflight`);
+  lines.push('');
+  lines.push(`Generated: ${new Date().toISOString()}`);
+  lines.push(`Project: ${detectData.project?.name || config?.project?.name || path.basename(cwd)}`);
+  lines.push(`Status: **${status.toUpperCase()}**`);
+  lines.push(`Production readiness score: **${score.total}/100**`);
+  lines.push(`Recommended hosting mode: **${mode}**`);
+  lines.push('');
+  lines.push('## Checks');
+  lines.push('');
+  for (const item of results) {
+    const label = item.status === 'pass' ? 'PASS' : item.status === 'warn' ? 'WARN' : 'FAIL';
+    lines.push(`- **${label}** — ${item.check}: ${item.detail}`);
+  }
+  lines.push('');
+  lines.push('## Decision');
+  lines.push('');
+  if (status === 'pass') lines.push('This project is ready for this deployment target, assuming build/runtime credentials are configured correctly.');
+  if (status === 'conditional') lines.push('This project can likely deploy to this target, but warnings must be reviewed before production.');
+  if (status === 'fail') lines.push('Do not deploy to this target until the failed checks are resolved.');
+  lines.push('');
+
+  return lines.join('\n');
+}
+
 function printHelp() {
-  console.log(`Webuild CLI\n\nUsage:\n  node scripts/webuild.mjs detect\n  node scripts/webuild.mjs validate\n  node scripts/webuild.mjs report [--write]\n  node scripts/webuild.mjs doctor\n\nCommands:\n  detect    Run project detector and print JSON\n  validate  Validate webuild.config.json\n  report    Generate a production-readiness report\n  doctor    Run detect + validate + report summary\n`);
+  console.log(`Webuild CLI\n\nUsage:\n  node scripts/webuild.mjs detect\n  node scripts/webuild.mjs validate\n  node scripts/webuild.mjs report [--write]\n  node scripts/webuild.mjs doctor\n  node scripts/webuild.mjs preflight --target=vercel|coolify|vps [--write]\n\nCommands:\n  detect     Run project detector and print JSON\n  validate   Validate webuild.config.json\n  report     Generate a production-readiness report\n  doctor     Run detect + validate + report summary\n  preflight  Run deployment-target readiness checks\n`);
 }
 
 if (command === 'detect') {
@@ -191,6 +249,23 @@ if (command === 'report' || command === 'doctor') {
     console.log(report);
   }
   process.exit(0);
+}
+
+if (command === 'preflight') {
+  try {
+    const report = renderPreflight(target);
+    if (shouldWrite) {
+      const outputPath = path.join(cwd, `webuild-preflight-${target === 'vps' ? 'coolify' : target}.md`);
+      fs.writeFileSync(outputPath, report);
+      console.log(`Preflight report written to ${outputPath}`);
+    } else {
+      console.log(report);
+    }
+    process.exit(0);
+  } catch (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
 }
 
 printHelp();
