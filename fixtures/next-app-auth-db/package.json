@@ -1,0 +1,17 @@
+{
+  "name": "next-app-auth-db-fixture",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "@prisma/client": "latest",
+    "next-auth": "latest",
+    "stripe": "latest"
+  },
+  "scripts": {
+    "build": "next build",
+    "start": "next start"
+  }
+}
