@@ -1,0 +1,64 @@
+{
+  "standard": "webuild-website-standard",
+  "version": "1.1.0",
+  "project": {
+    "name": "webuildsites",
+    "client": "Webuild",
+    "status": "standard-repository"
+  },
+  "classification": {
+    "type": "dynamic-website",
+    "hostingMode": "dynamic",
+    "reason": "Default starter supports interactive websites, API routes, integrations, and future dynamic behaviour. Change to static or app per project."
+  },
+  "stack": {
+    "framework": "nextjs",
+    "router": "app",
+    "language": "typescript",
+    "styling": "tailwind",
+    "packageManager": "npm"
+  },
+  "runtime": {
+    "requiresNodeServer": true,
+    "usesApiRoutes": false,
+    "usesDatabase": false,
+    "usesAuth": false,
+    "usesBackgroundJobs": false
+  },
+  "commands": {
+    "install": "npm install",
+    "dev": "npm run dev",
+    "build": "npm run build",
+    "start": "npm run start"
+  },
+  "deployment": {
+    "target": "webuild-cloud",
+    "engine": "coolify-compatible",
+    "containerized": false,
+    "domain": "",
+    "stagingDomain": ""
+  },
+  "integrations": {
+    "forms": {
+      "provider": "to-be-confirmed",
+      "requiredEnv": []
+    },
+    "analytics": {
+      "provider": "google-analytics",
+      "requiredEnv": ["NEXT_PUBLIC_GA_ID"]
+    },
+    "cms": {
+      "provider": "none",
+      "requiredEnv": []
+    },
+    "database": {
+      "provider": "none",
+      "requiredEnv": []
+    }
+  },
+  "maintenance": {
+    "uptimeMonitoring": true,
+    "backups": true,
+    "monthlyHealthCheck": true
+  }
+}
