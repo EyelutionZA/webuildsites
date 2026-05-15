@@ -10,6 +10,9 @@
     "report": "node scripts/webuild.mjs report",
     "report:write": "node scripts/webuild.mjs report --write",
     "doctor": "node scripts/webuild.mjs doctor",
+    "preflight:vercel": "node scripts/webuild.mjs preflight --target=vercel",
+    "preflight:coolify": "node scripts/webuild.mjs preflight --target=coolify",
+    "preflight:vps": "node scripts/webuild.mjs preflight --target=vps",
     "check": "npm test && npm run validate:config"
   },
   "engines": {
