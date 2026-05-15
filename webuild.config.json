@@ -1,51 +1,57 @@
 {
   "standard": "webuild-website-standard",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "project": {
     "name": "webuildsites",
     "client": "Webuild",
-    "status": "standard-repository"
+    "type": "standard-repository",
+    "status": "active"
   },
   "classification": {
-    "type": "dynamic-website",
-    "hostingMode": "dynamic",
-    "reason": "Default starter supports interactive websites, API routes, integrations, and future dynamic behaviour. Change to static or app per project."
+    "hostingMode": "none",
+    "reason": "This repository contains the Webuild Website Standard, Claude Code skill, templates, docs, and tooling. It is not itself a deployable website."
   },
   "stack": {
-    "framework": "nextjs",
-    "router": "app",
-    "language": "typescript",
-    "styling": "tailwind",
+    "framework": "none",
+    "router": "none",
+    "language": "javascript",
+    "styling": "none",
     "packageManager": "npm"
   },
   "runtime": {
-    "requiresNodeServer": true,
+    "requiresNodeServer": false,
     "usesApiRoutes": false,
+    "usesMiddleware": false,
     "usesDatabase": false,
     "usesAuth": false,
-    "usesBackgroundJobs": false
+    "usesPayments": false,
+    "usesUploads": false,
+    "usesBackgroundJobs": false,
+    "usesPersistentStorage": false,
+    "requiredEnv": []
   },
   "commands": {
     "install": "npm install",
-    "dev": "npm run dev",
-    "build": "npm run build",
-    "start": "npm run start"
+    "test": "npm test",
+    "validate": "npm run validate:config"
   },
   "deployment": {
-    "target": "webuild-cloud",
-    "engine": "coolify-compatible",
+    "target": "none",
+    "engine": "none",
     "containerized": false,
     "domain": "",
-    "stagingDomain": ""
+    "stagingDomain": "",
+    "healthCheckPath": "",
+    "port": null
   },
   "integrations": {
     "forms": {
-      "provider": "to-be-confirmed",
+      "provider": "none",
       "requiredEnv": []
     },
     "analytics": {
-      "provider": "google-analytics",
-      "requiredEnv": ["NEXT_PUBLIC_GA_ID"]
+      "provider": "none",
+      "requiredEnv": []
     },
     "cms": {
       "provider": "none",
@@ -54,10 +60,22 @@
     "database": {
       "provider": "none",
       "requiredEnv": []
+    },
+    "auth": {
+      "provider": "none",
+      "requiredEnv": []
+    },
+    "payments": {
+      "provider": "none",
+      "requiredEnv": []
+    },
+    "storage": {
+      "provider": "none",
+      "requiredEnv": []
     }
   },
   "maintenance": {
-    "uptimeMonitoring": true,
+    "uptimeMonitoring": false,
     "backups": true,
     "monthlyHealthCheck": true
   }
