@@ -27,7 +27,7 @@ Do not use provider-specific features without documenting the impact.
 | API routes / Route Handlers | Yes | Yes | No |
 | Server-side form handling | Yes | Yes | No |
 | CMS preview / draft mode | Yes | Yes | No |
-| Middleware/proxy logic | Yes, with platform limits | Yes, depending implementation | No |
+| Middleware/proxy logic | Yes, with platform limits | Yes, depending on implementation | No |
 | Auth | Yes, external/session strategy required | Yes, external/session strategy required | No |
 | Database | Yes, external DB | Yes, local or external DB | No |
 | Background jobs | External service recommended | Possible with worker/process manager | No |
@@ -129,7 +129,7 @@ Examples:
 For Webuild's business model:
 
 - marketing websites with runtime needs: `dynamic` on Webuild Cloud/Coolify-compatible VPS
-- simple brochure sites: `static` or `dynamic` depending forms/CMS
+- simple brochure sites: `static` or `dynamic` depending on forms/CMS
 - serious apps: `app` with dedicated architecture review
 
 The goal is not to use one runtime for everything.
