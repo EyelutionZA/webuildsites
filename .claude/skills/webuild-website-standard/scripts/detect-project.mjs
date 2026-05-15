@@ -22,7 +22,7 @@ const SKIP_DIRS = new Set([
   'templates',
   'examples'
 ]);
-const LOCKFILES = new Set(['package-lock.json', 'pnpm-lock.yaml', 'yarn.lock', 'bun.lockb']);
+const LOCKFILES = new Set(['package-lock.json', 'pnpm-lock.yaml', 'yarn.lock', 'bun.lock', 'bun.lockb']);
 const TEST_FILE_PATTERN = /(^|\/)([^/]+\.)?(test|spec)\.(js|jsx|ts|tsx|mjs|cjs)$/;
 
 function exists(...parts) {
@@ -32,8 +32,8 @@ function exists(...parts) {
 function readJson(file) {
   try {
     return JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
-  } catch {
-    return null;
+  } catch (error) {
+    return { __parseError: error.message };
   }
 }
 
@@ -55,9 +55,9 @@ function walk(dir = '.', maxDepth = 6, currentDepth = 0, results = []) {
     if (entry.name.startsWith('.') && entry.name !== '.env.example') continue;
     if (SKIP_DIRS.has(entry.name)) continue;
 
-    const rel = path.join(dir, entry.name).replace(/^\.\//, '');
+    const rel = path.join(dir, entry.name).replaceAll('\\', '/');
     if (entry.isDirectory()) walk(rel, maxDepth, currentDepth + 1, results);
-    else if (!TEST_FILE_PATTERN.test(rel.replaceAll('\\', '/'))) results.push(rel);
+    else if (!LOCKFILES.has(entry.name) && !TEST_FILE_PATTERN.test(rel)) results.push(rel);
   }
   return results;
 }
@@ -70,7 +70,25 @@ function hasSourcePattern(sourceText, patterns) {
   return patterns.some((pattern) => pattern.test(sourceText));
 }
 
-const pkg = readJson('package.json') || {};
+function collectEnvVars(sourceText) {
+  const vars = new Set();
+
+  for (const match of sourceText.matchAll(/process\.env\.([A-Z0-9_]+)/g)) vars.add(match[1]);
+  for (const match of sourceText.matchAll(/process\.env\[['"]([A-Z0-9_]+)['"]\]/g)) vars.add(match[1]);
+  for (const match of sourceText.matchAll(/import\.meta\.env\.([A-Z0-9_]+)/g)) vars.add(match[1]);
+  for (const match of sourceText.matchAll(/const\s*\{([^}]+)\}\s*=\s*process\.env/g)) {
+    for (const part of match[1].split(',')) {
+      const name = part.trim().split(':')[0]?.trim();
+      if (/^[A-Z0-9_]+$/.test(name)) vars.add(name);
+    }
+  }
+
+  return Array.from(vars).sort();
+}
+
+const rawPkg = exists('package.json') ? readJson('package.json') : {};
+const packageJsonError = rawPkg.__parseError || null;
+const pkg = packageJsonError ? {} : rawPkg;
 const deps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
 const scripts = pkg.scripts || {};
 const files = walk();
@@ -79,29 +97,31 @@ const sourceText = sourceFiles.map(readText).join('\n');
 
 const packageManager = exists('pnpm-lock.yaml') ? 'pnpm'
   : exists('yarn.lock') ? 'yarn'
-  : exists('bun.lockb') ? 'bun'
+  : exists('bun.lock') || exists('bun.lockb') ? 'bun'
   : exists('package-lock.json') ? 'npm'
   : 'unknown';
 
 const framework = deps.next ? 'nextjs'
-  : deps['@vitejs/plugin-react'] || deps.vite ? 'vite/react-or-unknown'
+  : deps['@vitejs/plugin-react'] ? 'vite-react'
+  : deps.vite ? 'vite'
   : deps.astro ? 'astro'
   : deps['@remix-run/react'] ? 'remix'
   : deps.react ? 'react'
   : 'unknown';
 
-const router = exists('app') || exists('src', 'app') ? 'app'
-  : exists('pages') || exists('src', 'pages') ? 'pages'
-  : 'unknown';
+const router = framework === 'nextjs'
+  ? (exists('app') || exists('src', 'app') ? 'app'
+    : exists('pages') || exists('src', 'pages') ? 'pages'
+      : 'unknown')
+  : 'not-applicable';
 
-const hasApiRoutes = sourceFiles.some((file) => {
+const hasApiRoutes = framework === 'nextjs' && sourceFiles.some((file) => {
   const normalized = file.replaceAll('\\', '/');
-  return /(^|\/)(app|src\/app)\/.*\/route\.(ts|js)$/.test(normalized)
-    || /(^|\/)(pages|src\/pages)\/api\//.test(normalized)
-    || /(^|\/)api\//.test(normalized);
+  return /(^|\/)(app|src\/app)\/api\/.*\/route\.(ts|js)$/.test(normalized)
+    || /(^|\/)(pages|src\/pages)\/api\/.*\.(ts|js)$/.test(normalized);
 });
 
-const hasMiddleware = sourceFiles.some((file) => /(^|\/)(middleware|proxy)\.(ts|js)$/.test(file.replaceAll('\\', '/')));
+const hasMiddleware = framework === 'nextjs' && sourceFiles.some((file) => /(^|\/)(middleware|proxy)\.(ts|js)$/.test(file.replaceAll('\\', '/')));
 
 const usesDatabase = hasDependency(deps, [
   'prisma', '@prisma/client', 'drizzle', 'drizzle-orm', 'mongoose', 'pg', 'mysql2',
@@ -109,16 +129,15 @@ const usesDatabase = hasDependency(deps, [
 ]) || hasSourcePattern(sourceText, [
   /new\s+PrismaClient\s*\(/,
   /createClient\s*\([^)]*SUPABASE/i,
-  /DATABASE_URL/,
+  /process\.env\.(DATABASE_URL|POSTGRES_URL|MYSQL_URL|MONGODB_URI)\b/,
   /from\(['"][A-Za-z0-9_-]+['"]\)\.(select|insert|update|delete)/
 ]);
 
 const usesAuth = hasDependency(deps, [
   'next-auth', '@auth/core', '@clerk/nextjs', 'clerk', 'lucia', '@supabase/auth-helpers-nextjs', 'jsonwebtoken', 'bcrypt', 'bcryptjs', 'passport'
 ]) || hasSourcePattern(sourceText, [
-  /\bAUTH_SECRET\b/,
-  /\bNEXTAUTH_/,
-  /\bCLERK_/,
+  /process\.env\.(AUTH_SECRET|NEXTAUTH_SECRET|CLERK_SECRET_KEY)\b/,
+  /\bNEXTAUTH_URL\b/,
   /getServerSession\s*\(/,
   /currentUser\s*\(/,
   /signIn\s*\(/,
@@ -126,21 +145,16 @@ const usesAuth = hasDependency(deps, [
 ]);
 
 const usesPayments = hasDependency(deps, ['stripe', '@stripe/stripe-js', '@paypal/checkout-server-sdk']) || hasSourcePattern(sourceText, [
-  /\bSTRIPE_/,
-  /\bPAYSTACK_/,
-  /\bPAYFAST_/,
-  /\bPAYMENT_SECRET_KEY\b/,
+  /process\.env\.(STRIPE_SECRET_KEY|PAYSTACK_SECRET_KEY|PAYFAST_PASSPHRASE|PAYMENT_SECRET_KEY)\b/,
   /new\s+Stripe\s*\(/,
   /checkout\.sessions\.create\s*\(/
 ]);
 
 const usesUploads = hasDependency(deps, ['multer', 'formidable', 'busboy', '@aws-sdk/client-s3', 'cloudinary']) || hasSourcePattern(sourceText, [
-  /request\.formData\s*\(/,
   /formData\.get\s*\(['"][^'"]*(file|image|upload)/i,
   /fs\.(writeFile|writeFileSync|createWriteStream)\s*\(/,
   /putObject\s*\(/,
-  /\bS3_BUCKET\b/,
-  /\bR2_BUCKET\b/
+  /process\.env\.(S3_BUCKET|R2_BUCKET|UPLOAD_DIR|CLOUDINARY_URL)\b/
 ]);
 
 const usesBackgroundJobs = hasDependency(deps, ['bull', 'bullmq', 'inngest', '@trigger.dev/sdk', 'node-cron', 'agenda', 'bee-queue']) || hasSourcePattern(sourceText, [
@@ -148,14 +162,10 @@ const usesBackgroundJobs = hasDependency(deps, ['bull', 'bullmq', 'inngest', '@t
   /QueueScheduler\s*\(/,
   /inngest\.createFunction\s*\(/,
   /cron\.schedule\s*\(/,
-  /process\.env\.(CRON_SECRET|QUEUE_|REDIS_URL)/
+  /process\.env\.(CRON_SECRET|QUEUE_[A-Z0-9_]+|REDIS_URL)\b/
 ]);
 
-const envVars = Array.from(new Set([
-  ...sourceText.matchAll(/process\.env\.([A-Z0-9_]+)/g),
-  ...sourceText.matchAll(/import\.meta\.env\.([A-Z0-9_]+)/g)
-].map((match) => match[1]))).sort();
-
+const envVars = collectEnvVars(sourceText);
 const runtimeEnvVars = envVars.filter((name) => !name.startsWith('NEXT_PUBLIC_') && !name.startsWith('PUBLIC_'));
 const usesRuntimeEnvVars = runtimeEnvVars.length > 0;
 
@@ -182,14 +192,15 @@ const hasDockerfile = exists('Dockerfile');
 const hasCompose = exists('docker-compose.yml') || exists('compose.yml');
 
 const vercel = {
-  compatible: framework === 'nextjs' || framework.startsWith('vite') || framework === 'astro' || framework === 'react' || framework === 'unknown',
+  compatible: ['nextjs', 'vite-react', 'vite', 'astro', 'react', 'unknown'].includes(framework),
   notes: []
 };
 
+if (packageJsonError) vercel.notes.push(`package.json parse error: ${packageJsonError}`);
 if (usesUploads) vercel.notes.push('Check for persistent local file writes; Vercel should use external object storage.');
 if (usesBackgroundJobs) vercel.notes.push('Background jobs should use an external worker/queue/scheduler.');
 if (framework === 'unknown') vercel.notes.push('No framework detected; this may be a standards/docs repo or needs manual framework setup.');
-if (hasDockerfile) vercel.notes.push('Dockerfile detected; Vercel normally ignores Dockerfile for standard Next.js deployments.');
+if (hasDockerfile) vercel.notes.push('Dockerfile detected; Vercel normally ignores Dockerfile for standard framework deployments.');
 
 const vpsCoolify = {
   compatible: framework !== 'unknown' || hasDockerfile || hasCompose || Boolean(scripts.build || scripts.start),
@@ -197,6 +208,7 @@ const vpsCoolify = {
   notes: []
 };
 
+if (packageJsonError) vpsCoolify.notes.push(`package.json parse error: ${packageJsonError}`);
 if (hostingMode !== 'static' && !scripts.start && !hasDockerfile && !hasCompose) {
   vpsCoolify.notes.push('Dynamic/app project has no start script or container config. Add or document one.');
 }
@@ -214,6 +226,7 @@ const result = {
     router,
     packageManager,
     scripts,
+    packageJsonError,
     hasStaticExport,
     hasDockerfile,
     hasCompose
@@ -239,8 +252,12 @@ const result = {
   files: {
     hasWebuildConfig: exists('webuild.config.json'),
     hasEnvExample: exists('.env.example'),
+    hasAgents: exists('AGENTS.md'),
+    hasClaude: exists('CLAUDE.md'),
     hasDeploymentDocs: exists('docs', 'DEPLOYMENT.md'),
-    hasHandoverDocs: exists('docs', 'HANDOVER.md')
+    hasMaintenanceDocs: exists('docs', 'MAINTENANCE.md'),
+    hasHandoverDocs: exists('docs', 'HANDOVER.md'),
+    hasMigrationDocs: exists('docs', 'MIGRATION.md')
   },
   scan: {
     sourceFilesScanned: sourceFiles.length,
