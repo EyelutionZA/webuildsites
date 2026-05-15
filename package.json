@@ -1,0 +1,16 @@
+{
+  "name": "webuildsites-standard",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "detect": "node .claude/skills/webuild-website-standard/scripts/detect-project.mjs",
+    "validate:config": "node .claude/skills/webuild-website-standard/scripts/validate-webuild-config.mjs",
+    "check": "npm test && npm run validate:config"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {}
+}
