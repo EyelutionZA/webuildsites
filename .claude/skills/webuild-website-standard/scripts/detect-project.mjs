@@ -24,6 +24,14 @@ const SKIP_DIRS = new Set([
 ]);
 const LOCKFILES = new Set(['package-lock.json', 'pnpm-lock.yaml', 'yarn.lock', 'bun.lock', 'bun.lockb']);
 const TEST_FILE_PATTERN = /(^|\/)([^/]+\.)?(test|spec)\.(js|jsx|ts|tsx|mjs|cjs)$/;
+// Webuild tooling is bundled into managed projects; it is not project source
+// and must not influence runtime/hosting detection.
+const WEBUILD_TOOLING = new Set([
+  'webuild.mjs',
+  'detect-project.mjs',
+  'validate-webuild-config.mjs',
+  'create-webuild-site.mjs'
+]);
 
 function exists(...parts) {
   return fs.existsSync(path.join(root, ...parts));
@@ -57,7 +65,7 @@ function walk(dir = '.', maxDepth = 6, currentDepth = 0, results = []) {
 
     const rel = path.join(dir, entry.name).replaceAll('\\', '/');
     if (entry.isDirectory()) walk(rel, maxDepth, currentDepth + 1, results);
-    else if (!LOCKFILES.has(entry.name) && !TEST_FILE_PATTERN.test(rel)) results.push(rel);
+    else if (!LOCKFILES.has(entry.name) && !WEBUILD_TOOLING.has(entry.name) && !TEST_FILE_PATTERN.test(rel)) results.push(rel);
   }
   return results;
 }
