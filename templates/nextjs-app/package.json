@@ -1,0 +1,34 @@
+{
+  "name": "__WEBUILD_PROJECT_NAME__",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "webuild:detect": "node scripts/webuild.mjs detect",
+    "webuild:validate": "node scripts/webuild.mjs validate",
+    "webuild:report": "node scripts/webuild.mjs report",
+    "webuild:preflight:vercel": "node scripts/webuild.mjs preflight --target=vercel",
+    "webuild:preflight:coolify": "node scripts/webuild.mjs preflight --target=coolify"
+  },
+  "dependencies": {
+    "@prisma/client": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "ajv": "^8.17.1",
+    "autoprefixer": "latest",
+    "next": "latest",
+    "next-auth": "latest",
+    "postcss": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "stripe": "latest",
+    "tailwindcss": "^3.4.17",
+    "typescript": "latest"
+  },
+  "devDependencies": {}
+}
