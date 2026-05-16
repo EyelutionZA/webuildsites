@@ -71,6 +71,9 @@ copyFileIfMissing(path.join(repoRoot, 'scripts', 'webuild.mjs'), path.join(targe
 if (fs.existsSync(path.join(repoRoot, '.claude'))) {
   copyDir(path.join(repoRoot, '.claude'), path.join(targetDir, '.claude'));
 }
+if (fs.existsSync(path.join(repoRoot, 'schemas'))) {
+  copyDir(path.join(repoRoot, 'schemas'), path.join(targetDir, 'schemas'));
+}
 
 const docsDir = path.join(repoRoot, 'docs');
 if (fs.existsSync(docsDir)) {
