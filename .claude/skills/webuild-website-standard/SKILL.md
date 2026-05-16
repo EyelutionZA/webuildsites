@@ -28,7 +28,7 @@ metadata:
 
 Turn AI-assisted website code into a production-ready digital asset that can be deployed, hosted, monitored, edited, backed up, migrated, and safely improved over time.
 
-Optimise for maintainability, deployment safety, conversion, SEO, and future editability — not demo-only visuals.
+Optimise for maintainability, deployment safety, conversion, SEO, accessibility, security, and future editability — not demo-only visuals.
 
 ## Non-Negotiable Rule
 
@@ -74,6 +74,7 @@ Use these files instead of trying to keep everything in this main skill:
 | Architecture choice | `references/architecture-modes.md` |
 | Next.js portability | `references/nextjs-portability.md` |
 | Forms and leads | `references/forms-and-leads.md` |
+| Accessibility | `references/accessibility.md` |
 | SEO and conversion | `references/seo-standard.md` |
 | Security baseline | `references/security-basics.md` |
 | Deployment contract | `templates/deployment-contract.json` |
