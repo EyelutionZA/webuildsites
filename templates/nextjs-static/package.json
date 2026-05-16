@@ -2,11 +2,17 @@
   "name": "__WEBUILD_PROJECT_NAME__",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "npx serve out",
-    "lint": "next lint"
+    "lint": "next lint",
+    "webuild:detect": "node scripts/webuild.mjs detect",
+    "webuild:validate": "node scripts/webuild.mjs validate",
+    "webuild:report": "node scripts/webuild.mjs report",
+    "webuild:preflight:vercel": "node scripts/webuild.mjs preflight --target=vercel",
+    "webuild:preflight:coolify": "node scripts/webuild.mjs preflight --target=coolify"
   },
   "dependencies": {
     "@types/node": "latest",
