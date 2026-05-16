@@ -19,6 +19,21 @@ Use this before launch or before marking a website production-ready.
 - [ ] destination confirmed
 - [ ] spam protection considered
 - [ ] duplicate submissions prevented where practical
+- [ ] labels and error messages are accessible
+
+## Accessibility
+
+- [ ] main navigation works with keyboard
+- [ ] visible focus states exist
+- [ ] inputs have programmatic labels
+- [ ] buttons/links have accessible names
+- [ ] colour contrast is readable
+- [ ] heading hierarchy is logical
+- [ ] meaningful images have useful alt text
+- [ ] decorative images are marked appropriately
+- [ ] modals/menus do not trap or lose focus
+- [ ] hover-only interactions also work on keyboard/touch
+- [ ] motion does not block usability
 
 ## SEO
 
@@ -28,14 +43,14 @@ Use this before launch or before marking a website production-ready.
 - [ ] robots present
 - [ ] Open Graph present where relevant
 - [ ] image alt text checked
-- [ ] local schema added where relevant
+- [ ] schema added where relevant
 
 ## Tracking
 
 - [ ] analytics configured
 - [ ] conversion events documented
 - [ ] pixels/tags documented
-- [ ] privacy/consent requirements considered
+- [ ] privacy/consent requirements considered where relevant
 
 ## Performance
 
@@ -52,6 +67,10 @@ Use this before launch or before marking a website production-ready.
 - [ ] form abuse/spam considered
 - [ ] dependencies reviewed
 - [ ] auth/payment/database flows reviewed if present
+- [ ] security headers considered
+- [ ] CSRF risk reviewed for state-changing authenticated routes
+- [ ] upload restrictions and storage plan reviewed if uploads exist
+- [ ] public endpoints do not leak stack traces
 
 ## Operations
 
@@ -67,4 +86,6 @@ Use this before launch or before marking a website production-ready.
 2. Blockers
 3. Warnings
 4. Hosting compatibility
-5. Launch checklist remaining
+5. Accessibility concerns
+6. Security concerns
+7. Launch checklist remaining
