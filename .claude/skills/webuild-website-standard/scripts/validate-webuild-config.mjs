@@ -40,6 +40,17 @@ function commandExists(command) {
   return Boolean(pkg.scripts?.[parts[2]]);
 }
 
+function parseEnvExample(text) {
+  const names = new Set();
+  for (const line of text.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const match = trimmed.match(/^([A-Z0-9_]+)\s*=/);
+    if (match) names.add(match[1]);
+  }
+  return names;
+}
+
 if (!fs.existsSync(configPath)) {
   console.log(JSON.stringify({ valid: false, issues: [fail('webuild.config.json is missing')] }, null, 2));
   process.exit(1);
@@ -59,6 +70,7 @@ const commands = config?.commands || {};
 const integrations = config?.integrations || {};
 const deployment = config?.deployment || {};
 const stack = config?.stack || {};
+const maintenance = config?.maintenance || {};
 
 if (config.standard !== 'webuild-website-standard') issues.push(fail('standard must be webuild-website-standard', 'standard'));
 if (!config.version) issues.push(fail('Missing version', 'version'));
@@ -76,6 +88,9 @@ if (projectType === 'website' && mode === 'none') issues.push(fail('Website proj
 if (projectType !== 'website' && ['static', 'dynamic', 'app'].includes(mode)) {
   issues.push(warn('Non-website repository is using a website hosting mode. Confirm this is intentional.', 'classification.hostingMode'));
 }
+if (hasOwn(config?.classification, 'type')) {
+  issues.push(warn('classification.type is deprecated. Use project.type and classification.hostingMode instead.', 'classification.type'));
+}
 
 const runtimeBooleans = [
   'requiresNodeServer',
@@ -92,6 +107,9 @@ for (const key of runtimeBooleans) {
   if (!hasOwn(runtime, key)) issues.push(fail(`Missing runtime.${key}`, `runtime.${key}`));
   else if (typeof runtime[key] !== 'boolean') issues.push(fail(`runtime.${key} must be boolean`, `runtime.${key}`));
 }
+if (hasOwn(runtime, 'hasApiRoutes')) {
+  issues.push(fail('runtime.hasApiRoutes is not a valid config field. Use runtime.usesApiRoutes.', 'runtime.hasApiRoutes'));
+}
 
 if (mode === 'none') {
   if (deployment.target && deployment.target !== 'none') issues.push(warn('hostingMode none should usually use deployment.target none', 'deployment.target'));
@@ -101,7 +119,17 @@ if (mode === 'none') {
 }
 
 if (mode === 'static') {
-  const staticForbidden = ['usesApiRoutes', 'usesMiddleware', 'usesDatabase', 'usesAuth', 'usesPayments', 'usesBackgroundJobs', 'usesPersistentStorage'];
+  const staticForbidden = [
+    'requiresNodeServer',
+    'usesApiRoutes',
+    'usesMiddleware',
+    'usesDatabase',
+    'usesAuth',
+    'usesPayments',
+    'usesUploads',
+    'usesBackgroundJobs',
+    'usesPersistentStorage'
+  ];
   for (const key of staticForbidden) {
     if (runtime[key]) issues.push(fail(`Static projects should not require runtime.${key}`, `runtime.${key}`));
   }
@@ -125,8 +153,13 @@ if (projectType === 'website') {
 
 if (!stack.framework) issues.push(fail('Missing stack.framework', 'stack.framework'));
 if (!stack.packageManager) issues.push(fail('Missing stack.packageManager', 'stack.packageManager'));
+if (!stack.language) issues.push(warn('Missing stack.language', 'stack.language'));
 if (!deployment.target) issues.push(fail('Missing deployment.target', 'deployment.target'));
+if (!deployment.engine) issues.push(fail('Missing deployment.engine', 'deployment.engine'));
 if (typeof deployment.containerized !== 'boolean') issues.push(fail('deployment.containerized must be boolean', 'deployment.containerized'));
+if (!hasOwn(maintenance, 'uptimeMonitoring')) issues.push(warn('Missing maintenance.uptimeMonitoring', 'maintenance.uptimeMonitoring'));
+if (!hasOwn(maintenance, 'backups')) issues.push(warn('Missing maintenance.backups', 'maintenance.backups'));
+if (!hasOwn(maintenance, 'monthlyHealthCheck')) issues.push(warn('Missing maintenance.monthlyHealthCheck', 'maintenance.monthlyHealthCheck'));
 
 const requiredEnv = new Set(Array.isArray(runtime.requiredEnv) ? runtime.requiredEnv : []);
 for (const section of Object.values(integrations)) {
@@ -139,13 +172,18 @@ const envExamplePath = path.join(root, '.env.example');
 if (!fs.existsSync(envExamplePath)) {
   issues.push(projectType === 'website' ? fail('.env.example is missing', '.env.example') : warn('.env.example is missing', '.env.example'));
 } else {
-  const envExample = fs.readFileSync(envExamplePath, 'utf8');
+  const envNames = parseEnvExample(fs.readFileSync(envExamplePath, 'utf8'));
   for (const env of requiredEnv) {
-    if (!envExample.includes(env)) issues.push(warn(`Required env var ${env} is not listed in .env.example`, '.env.example'));
+    if (!envNames.has(env)) issues.push(warn(`Required env var ${env} is not listed in .env.example`, '.env.example'));
   }
 }
 
-const docs = ['docs/DEPLOYMENT.md', 'docs/MAINTENANCE.md', 'docs/HANDOVER.md'];
+const requiredProjectFiles = ['AGENTS.md', 'CLAUDE.md'];
+for (const file of requiredProjectFiles) {
+  if (!fs.existsSync(path.join(root, file))) issues.push(warn(`${file} is missing`, file));
+}
+
+const docs = ['docs/DEPLOYMENT.md', 'docs/MAINTENANCE.md', 'docs/HANDOVER.md', 'docs/MIGRATION.md'];
 for (const doc of docs) {
   if (!fs.existsSync(path.join(root, doc))) issues.push(warn(`${doc} is missing`, doc));
 }
