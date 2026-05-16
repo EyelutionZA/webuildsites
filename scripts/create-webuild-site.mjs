@@ -63,10 +63,11 @@ function replaceInFile(filePath, replacements) {
 
 copyDir(templateDir, targetDir);
 
-// Copy the Webuild operating standard into every generated site.
+// Copy the Webuild operating standard and CLI into every generated site.
 copyFileIfMissing(path.join(repoRoot, 'AGENTS.md'), path.join(targetDir, 'AGENTS.md'));
 copyFileIfMissing(path.join(repoRoot, 'CLAUDE.md'), path.join(targetDir, 'CLAUDE.md'));
 copyFileIfMissing(path.join(repoRoot, '.env.example'), path.join(targetDir, '.env.example'));
+copyFileIfMissing(path.join(repoRoot, 'scripts', 'webuild.mjs'), path.join(targetDir, 'scripts', 'webuild.mjs'));
 if (fs.existsSync(path.join(repoRoot, '.claude'))) {
   copyDir(path.join(repoRoot, '.claude'), path.join(targetDir, '.claude'));
 }
@@ -109,6 +110,7 @@ console.log('  npm install');
 console.log('  npm run dev');
 console.log('\nBefore production:');
 console.log('  npm run build');
-console.log('  node .claude/skills/webuild-website-standard/scripts/detect-project.mjs');
-console.log('  node .claude/skills/webuild-website-standard/scripts/validate-webuild-config.mjs');
+console.log('  npm run webuild:detect');
+console.log('  npm run webuild:validate');
+console.log('  npm run webuild:report');
 console.log('  update webuild.config.json, .env.example and docs/');
