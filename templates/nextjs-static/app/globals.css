@@ -2,20 +2,179 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Webuild design tokens.
+  This is a warm editorial system — an intentional starting point, NOT a
+  framework default. RE-DERIVE every token below per brand from the project ICP.
+  See .claude/skills/webuild-website-standard/references/brand-and-art-direction.md
+*/
+
 :root {
   color-scheme: light;
+
+  /* Neutrals — warm, one consistent hue (~85) */
+  --bg: oklch(0.985 0.006 85);
+  --surface: oklch(0.967 0.008 85);
+  --surface-2: oklch(0.945 0.011 85);
+  --border: oklch(0.892 0.011 85);
+  --ink: oklch(0.235 0.018 75);
+  --ink-muted: oklch(0.521 0.015 75);
+
+  /* Brand — deep evergreen. Deliberately not default blue. */
+  --brand: oklch(0.42 0.072 165);
+  --brand-ink: oklch(0.97 0.013 165);
+
+  /* Accent — warm amber. Different hue family, used for ~10% of the page. */
+  --accent: oklch(0.74 0.158 64);
+  --accent-ink: oklch(0.26 0.05 64);
+
+  /* Fluid type scale — two-ratio modular scale, opens up on large screens */
+  --step--1: clamp(0.83rem, 0.80rem + 0.17vw, 0.94rem);
+  --step-0: clamp(1.00rem, 0.95rem + 0.24vw, 1.13rem);
+  --step-1: clamp(1.20rem, 1.12rem + 0.40vw, 1.51rem);
+  --step-2: clamp(1.44rem, 1.31rem + 0.65vw, 2.01rem);
+  --step-3: clamp(1.73rem, 1.53rem + 1.00vw, 2.68rem);
+  --step-4: clamp(2.07rem, 1.78rem + 1.48vw, 3.58rem);
+  --step-5: clamp(2.49rem, 2.06rem + 2.14vw, 4.77rem);
+
+  /* Spacing rhythm */
+  --space-section: clamp(4rem, 3rem + 8vw, 9rem);
+
+  /* Radius — soft posture */
+  --radius: 14px;
+  --radius-sm: 8px;
+  --radius-lg: 26px;
+
+  /* Layered, brand-tinted shadows — not a flat grey blur */
+  --shadow:
+    0 1px 2px -1px oklch(0.42 0.07 165 / 0.10),
+    0 8px 20px -6px oklch(0.42 0.07 165 / 0.13),
+    0 24px 48px -16px oklch(0.42 0.07 165 / 0.12);
+
+  /* Authored easing + durations */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-io: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 160ms;
+  --dur: 440ms;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  margin: 0;
-  background: #ffffff;
-  color: #111827;
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: oklch(0.205 0.014 265);
+    --surface: oklch(0.246 0.016 265);
+    --surface-2: oklch(0.292 0.018 265);
+    --border: oklch(0.365 0.020 265);
+    --ink: oklch(0.952 0.010 250);
+    --ink-muted: oklch(0.740 0.015 250);
+    --brand: oklch(0.70 0.085 165);
+    --brand-ink: oklch(0.20 0.03 165);
+    --accent: oklch(0.79 0.135 64);
+    --accent-ink: oklch(0.23 0.05 64);
+    --shadow:
+      0 1px 2px -1px oklch(0 0 0 / 0.55),
+      0 14px 36px -12px oklch(0 0 0 / 0.6);
+  }
 }
 
 * {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--step-0);
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+  font-optical-sizing: auto;
+  line-height: 1.03;
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+a {
+  color: inherit;
+}
+
+/* Designed, branded focus — never outline:none with no replacement */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* Subtle grain over flat colour planes — kills the flat-AI look.
+   Apply to a relatively-positioned element. */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Scroll-driven reveal — progressive enhancement.
+   The finished state is the default, so browsers without support (and
+   reduced-motion users) simply see completed content. */
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry 4% cover 28%;
+    }
+  }
+}
+
+/* Tactile press feedback for primary actions */
+@media (prefers-reduced-motion: no-preference) {
+  .press {
+    transition: transform var(--dur-fast) var(--ease-io);
+  }
+  .press:active {
+    transform: scale(0.97);
+  }
+}
+
+/* App-smooth multi-page navigation; degrades to instant where unsupported */
+@view-transition {
+  navigation: auto;
 }
