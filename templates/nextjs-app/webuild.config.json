@@ -1,0 +1,62 @@
+{
+  "standard": "webuild-website-standard",
+  "version": "2.0.0",
+  "project": {
+    "name": "__WEBUILD_PROJECT_NAME__",
+    "client": "Client Name",
+    "type": "website",
+    "status": "in-development"
+  },
+  "classification": {
+    "hostingMode": "app",
+    "reason": "Web app with auth, database, payment dependencies, dashboard route, and health endpoint."
+  },
+  "stack": {
+    "framework": "nextjs",
+    "router": "app",
+    "language": "typescript",
+    "styling": "tailwind",
+    "packageManager": "npm"
+  },
+  "runtime": {
+    "requiresNodeServer": true,
+    "usesApiRoutes": true,
+    "usesMiddleware": false,
+    "usesDatabase": true,
+    "usesAuth": true,
+    "usesPayments": true,
+    "usesUploads": false,
+    "usesBackgroundJobs": false,
+    "usesPersistentStorage": false,
+    "requiredEnv": ["DATABASE_URL", "AUTH_SECRET", "STRIPE_SECRET_KEY"]
+  },
+  "commands": {
+    "install": "npm install",
+    "dev": "npm run dev",
+    "build": "npm run build",
+    "start": "npm run start"
+  },
+  "deployment": {
+    "target": "webuild-cloud",
+    "engine": "coolify-compatible",
+    "containerized": false,
+    "domain": "",
+    "stagingDomain": "",
+    "healthCheckPath": "/api/health",
+    "port": 3000
+  },
+  "integrations": {
+    "forms": { "provider": "none", "requiredEnv": [] },
+    "analytics": { "provider": "none", "requiredEnv": [] },
+    "cms": { "provider": "none", "requiredEnv": [] },
+    "database": { "provider": "postgres", "requiredEnv": ["DATABASE_URL"] },
+    "auth": { "provider": "auth.js", "requiredEnv": ["AUTH_SECRET"] },
+    "payments": { "provider": "stripe", "requiredEnv": ["STRIPE_SECRET_KEY"] },
+    "storage": { "provider": "none", "requiredEnv": [] }
+  },
+  "maintenance": {
+    "uptimeMonitoring": true,
+    "backups": true,
+    "monthlyHealthCheck": true
+  }
+}
