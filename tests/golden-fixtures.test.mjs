@@ -35,6 +35,20 @@ test('golden fixture: next static site remains static', () => {
   assert.deepEqual(result.runtime.runtimeEnvVars, []);
 });
 
+test('golden fixture: static brochure with marketing copy stays static', () => {
+  const result = detectFixture('static-brochure-with-marketing-copy');
+
+  assert.equal(result.stack.framework, 'nextjs');
+  assert.equal(result.stack.router, 'app');
+  assert.equal(result.runtime.hostingModeRecommendation, 'static');
+  assert.equal(result.runtime.hasApiRoutes, false);
+  assert.equal(result.runtime.usesBackgroundJobs, false);
+  assert.equal(result.runtime.usesUploads, false);
+  assert.equal(result.runtime.usesPayments, false);
+  assert.equal(result.runtime.usesAuth, false);
+  assert.equal(result.runtime.usesDatabase, false);
+});
+
 test('golden fixture: next API form site is dynamic', () => {
   const result = detectFixture('next-dynamic-api-form');
 
