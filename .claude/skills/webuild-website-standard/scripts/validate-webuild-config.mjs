@@ -2,7 +2,11 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import Ajv from 'ajv';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const root = process.cwd();
 const configPath = path.join(root, 'webuild.config.json');
 
@@ -51,6 +55,16 @@ function parseEnvExample(text) {
   return names;
 }
 
+function findSchemaPath() {
+  const candidates = [
+    path.join(root, 'schemas', 'webuild.config.schema.json'),
+    path.resolve(__dirname, '..', 'schemas', 'webuild.config.schema.json'),
+    path.resolve(__dirname, '..', '..', '..', '..', 'schemas', 'webuild.config.schema.json')
+  ];
+
+  return candidates.find((candidate) => fs.existsSync(candidate));
+}
+
 if (!fs.existsSync(configPath)) {
   console.log(JSON.stringify({ valid: false, issues: [fail('webuild.config.json is missing')] }, null, 2));
   process.exit(1);
@@ -63,6 +77,25 @@ if (config.__error) {
 }
 
 const issues = [];
+const schemaPath = findSchemaPath();
+if (!schemaPath) {
+  issues.push(fail('Canonical schema schemas/webuild.config.schema.json could not be found', 'schemas/webuild.config.schema.json'));
+} else {
+  const schema = readJson(schemaPath);
+  if (schema.__error) {
+    issues.push(fail(`Canonical schema is not valid JSON: ${schema.__error}`, 'schemas/webuild.config.schema.json'));
+  } else {
+    const ajv = new Ajv({ allErrors: true, strict: false });
+    const validateSchema = ajv.compile(schema);
+    const schemaValid = validateSchema(config);
+    if (!schemaValid) {
+      for (const error of validateSchema.errors || []) {
+        issues.push(fail(`Schema: ${error.instancePath || '/'} ${error.message}`, error.instancePath || '/'));
+      }
+    }
+  }
+}
+
 const mode = config?.classification?.hostingMode;
 const projectType = config?.project?.type;
 const runtime = config?.runtime || {};
@@ -72,18 +105,6 @@ const deployment = config?.deployment || {};
 const stack = config?.stack || {};
 const maintenance = config?.maintenance || {};
 
-if (config.standard !== 'webuild-website-standard') issues.push(fail('standard must be webuild-website-standard', 'standard'));
-if (!config.version) issues.push(fail('Missing version', 'version'));
-if (!config.project?.name) issues.push(fail('Missing project.name', 'project.name'));
-if (!projectType) issues.push(fail('Missing project.type', 'project.type'));
-if (projectType && !['website', 'standard-repository', 'template-repository', 'tooling-repository'].includes(projectType)) {
-  issues.push(fail('project.type must be website, standard-repository, template-repository, or tooling-repository', 'project.type'));
-}
-
-if (!mode) issues.push(fail('Missing classification.hostingMode', 'classification.hostingMode'));
-if (mode && !['none', 'static', 'dynamic', 'app'].includes(mode)) {
-  issues.push(fail('classification.hostingMode must be none, static, dynamic, or app', 'classification.hostingMode'));
-}
 if (projectType === 'website' && mode === 'none') issues.push(fail('Website projects cannot use hostingMode none', 'classification.hostingMode'));
 if (projectType !== 'website' && ['static', 'dynamic', 'app'].includes(mode)) {
   issues.push(warn('Non-website repository is using a website hosting mode. Confirm this is intentional.', 'classification.hostingMode'));
@@ -103,10 +124,7 @@ const runtimeBooleans = [
   'usesBackgroundJobs',
   'usesPersistentStorage'
 ];
-for (const key of runtimeBooleans) {
-  if (!hasOwn(runtime, key)) issues.push(fail(`Missing runtime.${key}`, `runtime.${key}`));
-  else if (typeof runtime[key] !== 'boolean') issues.push(fail(`runtime.${key} must be boolean`, `runtime.${key}`));
-}
+
 if (hasOwn(runtime, 'hasApiRoutes')) {
   issues.push(fail('runtime.hasApiRoutes is not a valid config field. Use runtime.usesApiRoutes.', 'runtime.hasApiRoutes'));
 }
@@ -150,16 +168,6 @@ if (projectType === 'website') {
   if (commands.build && !commandExists(commands.build)) issues.push(warn(`Build command may not exist in package.json: ${commands.build}`, 'commands.build'));
   if (commands.start && !commandExists(commands.start)) issues.push(warn(`Start command may not exist in package.json: ${commands.start}`, 'commands.start'));
 }
-
-if (!stack.framework) issues.push(fail('Missing stack.framework', 'stack.framework'));
-if (!stack.packageManager) issues.push(fail('Missing stack.packageManager', 'stack.packageManager'));
-if (!stack.language) issues.push(warn('Missing stack.language', 'stack.language'));
-if (!deployment.target) issues.push(fail('Missing deployment.target', 'deployment.target'));
-if (!deployment.engine) issues.push(fail('Missing deployment.engine', 'deployment.engine'));
-if (typeof deployment.containerized !== 'boolean') issues.push(fail('deployment.containerized must be boolean', 'deployment.containerized'));
-if (!hasOwn(maintenance, 'uptimeMonitoring')) issues.push(warn('Missing maintenance.uptimeMonitoring', 'maintenance.uptimeMonitoring'));
-if (!hasOwn(maintenance, 'backups')) issues.push(warn('Missing maintenance.backups', 'maintenance.backups'));
-if (!hasOwn(maintenance, 'monthlyHealthCheck')) issues.push(warn('Missing maintenance.monthlyHealthCheck', 'maintenance.monthlyHealthCheck'));
 
 const requiredEnv = new Set(Array.isArray(runtime.requiredEnv) ? runtime.requiredEnv : []);
 for (const section of Object.values(integrations)) {
