@@ -7,12 +7,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "webuild:detect": "node scripts/webuild.mjs detect",
+    "webuild:validate": "node scripts/webuild.mjs validate",
+    "webuild:report": "node scripts/webuild.mjs report",
+    "webuild:preflight:vercel": "node scripts/webuild.mjs preflight --target=vercel",
+    "webuild:preflight:coolify": "node scripts/webuild.mjs preflight --target=coolify"
   },
   "dependencies": {
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "ajv": "^8.17.1",
     "autoprefixer": "latest",
     "next": "latest",
     "postcss": "latest",
