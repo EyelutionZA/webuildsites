@@ -94,6 +94,18 @@
     "backups": true,
     "monthlyHealthCheck": true
   },
+  "creative": {
+    "icp": "",
+    "axes": {
+      "informationDensity": "sparse|balanced|dense",
+      "motionIntensity": "still|subtle|kinetic",
+      "colour": "muted|balanced|vivid",
+      "typeVoice": "classical|modern|experimental",
+      "imagery": "photographic|illustrative|abstract",
+      "radiusPosture": "sharp|soft|pill"
+    },
+    "signatureMoment": ""
+  },
   "risks": [],
   "nextSteps": []
 }

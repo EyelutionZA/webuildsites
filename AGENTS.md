@@ -243,24 +243,26 @@ Every important page needs:
 
 ## 11. Performance Rule
 
-Performance matters, but do not sacrifice required functionality.
+Performance matters, but do not sacrifice required functionality — or required craft.
 
 Prefer:
 
 - server components where suitable
 - minimal client-side JavaScript
-- optimized images
-- lazy loading
-- limited animation libraries
+- optimized, responsive images (AVIF/WebP, explicit dimensions)
+- lazy loading below the fold
+- CSS-first motion; a JavaScript motion library only when an interaction genuinely needs it
 - clean dependency choices
 
 Avoid:
 
 - dependency bloat
 - unnecessary client components
-- heavy animations everywhere
+- animation that regresses Core Web Vitals or animates layout properties
 - giant page files
 - unused packages
+
+Performance and motion are not in conflict. Purposeful, CSS-first, transform/opacity-only motion costs almost nothing. See the skill references `motion-and-interaction.md` and `mobile-first.md`.
 
 ---
 
@@ -368,7 +370,43 @@ For existing or completed websites:
 
 ---
 
-## 18. Definition of Done
+## 18. Creative Direction
+
+A Webuild site must look bespoke and brand-specific. A visitor must not be able to tell it was AI-built. The benchmark is a custom studio build, not a framework demo.
+
+### Anti-Generic Rule
+
+Every visual default must be a deliberate, documented decision — never a framework default left untouched. The following are not acceptable in production:
+
+- raw default Tailwind palette, or a default (~250 degree) blue accent
+- pure white background with near-black text; hue-neutral greys
+- system fonts only, or one font for headings and body with no display face
+- everything centred; the repeated 3-up icon-card grid as the only pattern
+- emoji icons; default grey-blur shadows; no radius system
+- zero motion, or one indiscriminate global fade
+- vague filler copy; undesigned empty, loading, and error states
+
+### ICP-First
+
+Before building or restyling, record the Ideal Customer Profile and set the six creative axes — information density, motion intensity, colour temperature/chroma, type voice, imagery, radius posture. Design tokens (colour in OKLCH, a fluid `clamp()` type scale, spacing, depth, radius) are derived from those axes, not from framework defaults.
+
+### Mobile-First
+
+Design and build for the smallest screen first, then enhance upward. Touch targets at least 44px. Primary actions in the thumb zone. Honour safe-area insets. Core Web Vitals are launch gates: LCP under 2.5s, INP under 200ms, CLS under 0.1 on mobile.
+
+### Motion
+
+Motion is a craft requirement with a budget. CSS-first; a motion library only when justified; `static` projects ship no motion JavaScript. Authored easing, `transform`/`opacity` only, `prefers-reduced-motion` as a designed calm fallback.
+
+### Creative Review
+
+Every site has one intentional signature moment. Run the creative review before launch. Creative quality is a launch gate equal to SEO, accessibility, and security.
+
+Deep guidance lives in the skill: `references/creative-direction.md`, `icp-and-positioning.md`, `brand-and-art-direction.md`, `motion-and-interaction.md`, `mobile-first.md`, and `checklists/08-creative-review.md`.
+
+---
+
+## 19. Definition of Done
 
 A task is complete only when:
 
@@ -378,12 +416,15 @@ A task is complete only when:
 - forms are connected or clearly marked
 - SEO basics are present
 - deployment requirements are clear
+- design tokens are derived from the ICP, not left as framework defaults
+- the site is mobile-first and meets the Core Web Vitals gates
+- the creative review passes — the site does not read as a generic AI build
 - future editing is easier than before
 - risks are documented
 
 ---
 
-## 19. Final Response Requirements
+## 20. Final Response Requirements
 
 After making changes, always report:
 
@@ -393,4 +434,5 @@ After making changes, always report:
 4. How to build
 5. Required environment variables
 6. Whether the site is static, dynamic, or app-like
-7. Any risks, assumptions, or unfinished items
+7. Creative direction summary: ICP, design tokens, motion approach, mobile-first/Core Web Vitals status
+8. Any risks, assumptions, or unfinished items

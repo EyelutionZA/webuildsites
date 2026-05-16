@@ -129,6 +129,27 @@
         "monthlyHealthCheck": { "type": "boolean" }
       },
       "additionalProperties": true
+    },
+    "creative": {
+      "type": "object",
+      "description": "Optional. Records the ICP and creative direction. See the skill references creative-direction.md and icp-and-positioning.md.",
+      "properties": {
+        "icp": { "type": "string" },
+        "axes": {
+          "type": "object",
+          "properties": {
+            "informationDensity": { "type": "string" },
+            "motionIntensity": { "type": "string" },
+            "colour": { "type": "string" },
+            "typeVoice": { "type": "string" },
+            "imagery": { "type": "string" },
+            "radiusPosture": { "type": "string" }
+          },
+          "additionalProperties": true
+        },
+        "signatureMoment": { "type": "string" }
+      },
+      "additionalProperties": true
     }
   },
   "$defs": {

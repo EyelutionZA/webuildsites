@@ -23,6 +23,18 @@ Define:
 - deployment target
 - hosting mode: `static`, `dynamic`, or `app`
 
+## Creative Direction Before Coding
+
+Do not start visual work until this is set. See `references/creative-direction.md`.
+
+- record the ICP: who the site is for, industry, what they need to act, primary device
+- set the six creative axes: density, motion intensity, colour, type voice, imagery, radius posture
+- derive design tokens from the axes: OKLCH colour, fluid `clamp()` type scale, spacing, depth, radius
+- choose the typeface pairing (a display face with personality and a body face)
+- set the motion budget (`references/motion-and-interaction.md`)
+- plan one signature moment
+- confirm the build is mobile-first (`references/mobile-first.md`)
+
 ## Recommended Structure
 
 Use this structure unless the project has a strong reason not to:
@@ -87,6 +99,10 @@ If VPS/Coolify:
 - [ ] Content centralised where practical
 - [ ] Forms connected or marked pending
 - [ ] SEO basics present
+- [ ] Design tokens derived from the ICP — no framework defaults left raw
+- [ ] Mobile-first; Core Web Vitals gates met
+- [ ] Motion budget applied; one signature moment present
+- [ ] Creative review (`checklists/08-creative-review.md`) passes
 - [ ] Build command known
 - [ ] Hosting mode documented
 - [ ] Vercel compatibility documented

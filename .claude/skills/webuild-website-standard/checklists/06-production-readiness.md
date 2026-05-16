@@ -21,6 +21,26 @@ Use this before launch or before marking a website production-ready.
 - [ ] duplicate submissions prevented where practical
 - [ ] labels and error messages are accessible
 
+## Creative & Brand
+
+Run the full creative gate in `checklists/08-creative-review.md`. At minimum:
+
+- [ ] ICP and the six creative axes are recorded
+- [ ] no raw framework defaults (Tailwind palette, default blue, system fonts, 3-up clone grid)
+- [ ] design tokens (OKLCH colour, fluid type scale, spacing, depth, radius) derived from the ICP
+- [ ] a real display typeface; layout uses asymmetry and intentional whitespace
+- [ ] motion budget applied; CSS-first; authored easing; reduced-motion designed
+- [ ] one intentional signature moment
+- [ ] the site does not read as a generic AI/template build
+
+## Mobile-First
+
+- [ ] designed and reviewed on a ~390px canvas first
+- [ ] touch targets at least 44px, adequately spaced
+- [ ] primary actions reachable in the thumb zone
+- [ ] safe-area insets handled; viewport meta uses `viewport-fit=cover`
+- [ ] LCP under 2.5s, INP under 200ms, CLS under 0.1 on mobile
+
 ## Accessibility
 
 - [ ] main navigation works with keyboard
@@ -86,6 +106,8 @@ Use this before launch or before marking a website production-ready.
 2. Blockers
 3. Warnings
 4. Hosting compatibility
-5. Accessibility concerns
-6. Security concerns
-7. Launch checklist remaining
+5. Creative review result and any "looks generic" concerns
+6. Mobile-first and Core Web Vitals status
+7. Accessibility concerns
+8. Security concerns
+9. Launch checklist remaining
